@@ -1,30 +1,60 @@
 # Agentic Focus Buddy
-## Focus Buddy (Agentic v1) - Reason → Act → Reflect
+## Focus Buddy (Agentic v1 → v2) - From Reason → Act → Reflect → Retrieve
 
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-blue?logo=openai)](https://platform.openai.com)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-green?logo=python)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Focus Buddy** is a **primitive agentic AI** that helps you plan focused deep-work sessions intelligently.  
-Instead of giving a one-shot response, it *thinks*, *acts*, and *reflects* - running a full **Reason → Act → Reflect** loop before delivering a final plan.
+**Focus Buddy** is an evolving **Agentic AI assistant** that helps you plan focused deep-work sessions intelligently.  
+Version 1 introduced a minimal **Reason → Act → Reflect** loop, while Version 2 expands it into a lightweight form of **Agentic RAG** (Retrieval-Augmented Reasoning).
 
-This is part of my **Agentic AI - learning-in-public series**, exploring how small reasoning loops can create systems that feel *autonomous* rather than reactive.
+This project is part of my **Agentic AI: learning-in-public series**, where I iteratively build, deploy, and reflect on systems that feel *autonomous rather than reactive*.
 
 ---
 
-## How It Works
+## Version 2.0 - Agentic RAG
+
+**What’s new:**
+- **Retrieval-Augmented Reasoning** - integrates real web insights using SerpAPI.  
+- Uses retrieved context to plan smarter, more realistic focus sessions.  
+- Works as a stepping stone toward true autonomous agents (LangGraph in v3).
+
+### How It Works (v2.0)
 ```
 [User Goal]
    ↓
-REASON - think through approach, time allocation & structure  
+REASON - interpret the goal and duration  
    ↓
-ACT - generate a concrete plan (steps, breaks, motivation)  
+RETRIEVE - fetch relevant focus/productivity strategies from the web  
    ↓
-REFLECT - critique and refine the plan for realism  
+ACT - generate a structured plan using retrieved knowledge  
    ↓
-Final Plan delivered to the user
+REFLECT - explain why this plan works  
+   ↓
+DELIVER - output a refined, context-aware focus plan
 ```
-> This minimal loop makes Focus Buddy a **genuinely agentic** system - not just a chat script.
+> This extends Focus Buddy into a **retrieval-augmented agent**, grounding its reasoning in live information.
+
+---
+
+## Example Output (v2.0)
+```
+Strategy Summary
+- Use 50/10 focus cycles (Pomodoro)
+- Minimize distractions using task batching
+
+Focus Plan
+1. 0–50 min: Outline report sections
+2. 50–60 min: Short break
+3. 60–110 min: Write core content
+4. 110–120 min: Revise and finalize
+
+Why This Works
+Incorporates evidence-based attention management strategies for sustained focus.
+
+Motivation
+Every focused cycle compounds - momentum builds with each 50-minute block.
+```
 
 ---
 
@@ -46,74 +76,63 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Add your API key
-```bash
-cp .env.example .env
+### Add your API keys
+Create a `.env` file:
 ```
-Then open `.env` and add:
-```
-OPENAI_API_KEY=sk-your-key-here
+OPENAI_API_KEY=<your-openai-key-here>
+SERPAPI_API_KEY=<your-serpapi-key-here>
 ```
 
 ### Run locally (Gradio UI)
 ```bash
 python app.py
 ```
-Open http://127.0.0.1:7860 and enter a task + duration.  
-Focus Buddy will reason, act, and reflect before showing your final plan.
+Open [http://127.0.0.1:7860](http://127.0.0.1:7860)  
+Enter a task & duration, and Focus Buddy will retrieve insights, reason, and generate your plan.
 
 ---
 
-## Example Output
-```
-Task: Write a 2-page analysis report | Duration: 2 hours
+## Version History
 
-Reasoning:
-Divide work into outline → draft → edit. Include breaks to maintain focus.
+### v2.0 - Agentic RAG
+- Introduced web retrieval via SerpAPI  
+- Combined external context + reasoning for smarter plans  
+- Updated Gradio UI for unified output
 
-Initial Plan:
-1. Outline structure (0:00–0:30)  
-2. Write draft (0:30–1:20)  
-3. Break (1:20–1:30)  
-4. Revise & polish (1:30–2:00)
-
-Reflection:
-Break comes too late - move earlier for mental reset.  
-**Final Plan:**  
-1. Outline (0:00–0:25)  
-2. Draft (0:25–1:15)  
-3. Break (1:15–1:25)  
-4. Revise (1:25–2:00)
-
-Motivation: You’re not racing the clock - you’re partnering with focus.
-```
+### v1.0 - Reason → Act → Reflect
+- Primitive reasoning loop with interpret → plan → refine  
+- No external context  
+- Core logic in `focus_buddy.py`
 
 ---
 
 ## Project Structure
 ```
 focus-buddy-agent/
-├─ focus_buddy.py     # Core Reason→Act→Reflect agent logic  
-├─ app.py             # Gradio interface  
+├─ focus_buddy.py          # v1.0 Reason → Act → Reflect agent logic  
+├─ focus_buddy_rag.py      # v2.0 Manual Agentic RAG  
+├─ app.py                  # Gradio UI (integrated with RAG backend)  
 ├─ requirements.txt  
-├─ .env               # Example .env file  
-├─ end-product/       # Contains screenshots/demos/images/links of the end-product/output      
-    ├─ v1             
+├─ .env.example  
 ├─ README.md  
 └─ CHANGELOG.md  
 ```
 
+---
+
 ## Tech Stack
 - **Python 3.9+**  
-- **OpenAI API (gpt-4o-mini / gpt-4o)**  
+- **LangChain 1.0+**  
+- **OpenAI GPT-4o-mini**  
+- **SerpAPI** for live retrieval  
 - **Gradio** for UI  
-- **dotenv** for secure key loading  
+- **dotenv** for secure key management  
 
 ---
 
 ## Why “Agentic”?
-Unlike a regular LLM that responds once and stops, Focus Buddy *reasons, plans, and reflects* before answering -  
-a core pattern behind modern **agentic systems** like AutoGPT, ReAct, and Reflexion.
+Unlike traditional LLMs that just respond once, Focus Buddy *reasons, retrieves, and reflects* -  
+following the core design pattern behind modern **agentic systems** like ReAct, Reflexion, and AutoGPT.
 
 ---
 
@@ -123,5 +142,6 @@ MIT License - see [LICENSE](LICENSE)
 ---
 
 ## Credits & Author
-**Created by:** Sera  
-Part of my *“Agentic AI”* learning journey, building small, reasoning-driven systems to explore how AI can move from reactive to proactive behavior.
+**Created by:** Sera 
+
+Part of my *“Agentic AI”* learning journey - building small reasoning-driven systems to explore how AI can move from reactive to proactive behavior.
