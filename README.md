@@ -113,7 +113,7 @@ focus-buddy-agent/
 ├─ focus_buddy_rag.py      # v2.0 Manual Agentic RAG  
 ├─ app.py                  # Gradio UI (integrated with RAG backend)  
 ├─ requirements.txt  
-├─ .env.example  
+├─ .env  
 ├─ README.md  
 └─ CHANGELOG.md  
 ```
