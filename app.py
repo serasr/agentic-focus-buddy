@@ -16,7 +16,7 @@ with gr.Blocks(title="Focus Buddy (Agentic v1)") as demo:
         duration = gr.Textbox(label="Time Available", placeholder="2 hours")
 
     btn = gr.Button("Generate Focus Plan")
-    final_plan = gr.Textbox(label="Final Plan", lines=12)
+    final_plan = gr.Markdown(label="Final Plan")
     with gr.Accordion("Reasoning (internal)", open=False):
         reasoning = gr.Textbox(lines=10)
     with gr.Accordion("Initial Plan (pre-reflection)", open=False):
