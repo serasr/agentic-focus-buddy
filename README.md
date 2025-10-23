@@ -169,7 +169,7 @@ It’s a small example of how agents can move from *reactive tools* → *autonom
 
 ## Author
 **Created by:** Sera  
-Part of the *Agentic AI Learning-in-Public* series — building reasoning-driven systems that bridge productivity, autonomy, and AI design.
+Part of the *Agentic AI Learning-in-Public* series; building reasoning-driven systems that bridge productivity, autonomy, and AI design.
 
 ---
 
