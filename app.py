@@ -1,37 +1,43 @@
+"""
+app.py - Gradio Interface for Focus Buddy v3.0
+----------------------------------------------
+Launch a web UI to run a complete focus session:
+User enters a goal + duration → Agent classifies, plans, retrieves (RAG), reflects → returns structured plan.
+"""
+
 import gradio as gr
-from focus_buddy_rag import run_agentic_rag  # for v2.0
+from focus_buddy_langgraph import run_focus_session
 
-def run(task, duration):
-    if not task or not duration:
-        return "Please provide both Task and Duration.", "", ""
-    
-    # Call the new Agentic RAG function
-    output = run_agentic_rag(task, duration)
-    
-    # Since RAG version returns a single structured response, fill the main box
-    return output, "Retrieved and reasoned using web context.", "N/A (RAG does direct reasoning)"
+def run_agent(goal, duration):
+    if not goal or not duration:
+        return "Please enter both a goal and duration."
+    try:
+        result = run_focus_session(goal, duration)
+        return result
+    except Exception as e:
+        return f"Error while running Focus Buddy: {e}"
 
-# Gradio UI
-with gr.Blocks(title="Focus Buddy (Agentic RAG v2.0)") as demo:
-    gr.Markdown("# Focus Buddy (Agentic RAG v2.0)")
-    gr.Markdown(
-        "An enhanced Focus Buddy powered by **Retrieval-Augmented Reasoning**. "
-        "It searches for real productivity insights before planning."
-    )
+with gr.Blocks(title="Focus Buddy v3.0 - Agentic Focus Session") as demo:
+    gr.Markdown("""
+    # Focus Buddy (Agentic v3.0)
+    **An autonomous AI assistant that plans, retrieves, and reflects.**
+
+    Give it a goal and time - it’ll reason through the best approach,
+    find relevant strategies, create your focus plan, and self-reflect.
+    """)
 
     with gr.Row():
-        task = gr.Textbox(label="Your Task", placeholder="Write a 2-page analysis report")
-        duration = gr.Textbox(label="Time Available", placeholder="2 hours")
+        goal = gr.Textbox(label=" Your Goal", placeholder="Finish a data analysis report")
+        duration = gr.Textbox(label=" Duration", placeholder="2 hours")
 
-    btn = gr.Button("Generate Focus Plan")
-    final_plan = gr.Markdown(label="Final Plan")
-    with gr.Accordion("Reasoning (context summary)", open=False):
-        reasoning = gr.Textbox(lines=10)
-    with gr.Accordion("Initial Plan (pre-reflection)", open=False):
-        initial = gr.Textbox(lines=10)
+    run_btn = gr.Button("Generate Focus Plan")
 
-    btn.click(run, [task, duration], [final_plan, reasoning, initial])
+    output = gr.Markdown(label="Focus Buddy Plan", show_copy_button=True)
 
-# Launch app 
+    run_btn.click(fn=run_agent, inputs=[goal, duration], outputs=output)
+
+    gr.Markdown("---")
+    gr.Markdown("Built with using LangGraph, OpenAI, and Gradio.")
+
 if __name__ == "__main__":
     demo.launch()
