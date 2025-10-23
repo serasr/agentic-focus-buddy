@@ -1,5 +1,5 @@
 """
-Focus Buddy v3.1 - Autonomous Focus Session Agent
+Focus Buddy v3.0 - Autonomous Focus Session Agent
 --------------------------------------------------
 Uses LangGraph for classification, routing & decision logic
 Integrates Agentic RAG (SerpAPI-based) for research tasks
@@ -196,7 +196,7 @@ def run_focus_session(goal: str, duration: str = "2 hours"):
     Runs a full autonomous focus session:
     Goal → Classify → Route → Execute → Reflect → Return structured output.
     """
-    print("Focus Buddy v3.0 — Agentic Focus Session\n")
+    print("Focus Buddy v3.0 - Agentic Focus Session\n")
 
     # Initialize state
     state = {
@@ -223,3 +223,4 @@ if __name__ == "__main__":
     run_focus_session("Finish a data analysis report", "2 hours")
     # run_focus_session("Learn how to improve deep work productivity", "1.5 hours")
     # run_focus_session("Get motivated to start my thesis writing", "30 minutes")
+
