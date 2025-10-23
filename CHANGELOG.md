@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [v3.0] - 2025-10-23
+### Added
+- Migrated from rule-based loops to **LangGraph** autonomous flow.
+- Added multiple sub-agents: `planner_agent`, `research_agent`, `motivator_agent`.
+- Integrated structured output classification via `TaskClassifier` using Pydantic.
+- Added routing logic for task-type-based agent activation.
+
+### Improved
+- Enhanced reasoning flow for “Reason → Act → Reflect”.
+- Introduced modular design for adding more tools (retrieval, reflection, scheduling).
+
+---
+
 ## [v2.0] - 2025-10-14
 ### Added
 - Introduced **Agentic RAG** (Retrieval-Augmented Reasoning) using SerpAPI.
