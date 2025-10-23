@@ -1,147 +1,175 @@
-# Agentic Focus Buddy
-## Focus Buddy (Agentic v1 → v2) - From Reason → Act → Reflect → Retrieve
+# Focus Buddy (Agentic v3.0)
 
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-blue?logo=openai)](https://platform.openai.com)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-green?logo=python)](https://www.python.org/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Autonomous_Agent-red)](https://github.com/langchain-ai/langgraph)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Focus Buddy** is an evolving **Agentic AI assistant** that helps you plan focused deep-work sessions intelligently.  
-Version 1 introduced a minimal **Reason → Act → Reflect** loop, while Version 2 expands it into a lightweight form of **Agentic RAG** (Retrieval-Augmented Reasoning).
+---
 
-This project is part of my **Agentic AI: learning-in-public series**, where I iteratively build, deploy, and reflect on systems that feel *autonomous rather than reactive*.
+## Overview
+
+**Focus Buddy** is an **autonomous AI agent** that plans your deep-work sessions intelligently.  
+Unlike a chatbot, it doesn’t just respond, rather it *thinks, retrieves, and reflects* before presenting a final, personalized focus plan.
+
+This is part of the **Agentic AI: Learning in Public Series**, exploring how reasoning loops, retrieval, and autonomy can make AI systems more *intentional* and *goal-driven*.
 
 ---
 
-## Version 2.0 - Agentic RAG
+## Version Highlights (v3.0)
 
-**What’s new:**
-- **Retrieval-Augmented Reasoning** - integrates real web insights using SerpAPI.  
-- Uses retrieved context to plan smarter, more realistic focus sessions.  
-- Works as a stepping stone toward true autonomous agents (LangGraph in v3).
-
-### How It Works (v2.0)
-```
-[User Goal]
-   ↓
-REASON - interpret the goal and duration  
-   ↓
-RETRIEVE - fetch relevant focus/productivity strategies from the web  
-   ↓
-ACT - generate a structured plan using retrieved knowledge  
-   ↓
-REFLECT - explain why this plan works  
-   ↓
-DELIVER - output a refined, context-aware focus plan
-```
-> This extends Focus Buddy into a **retrieval-augmented agent**, grounding its reasoning in live information.
+| Capability | Description |
+|-------------|--------------|
+| **Session-based design** | You give it a goal and duration - it handles everything autonomously. |
+| **Agentic autonomy (LangGraph)** | Classifies → Routes → Executes → Reflects using reasoning loops. |
+| **Agentic RAG integration** | Retrieves real-world productivity and research insights using SerpAPI. |
+| **Self-reflection step** | Evaluates and refines its own plan for realism and flow. |
+| **Gradio UI** | Simple web interface to interact with Focus Buddy visually. |
 
 ---
 
-## Example Output (v2.0)
+## How It Works
+
 ```
-Strategy Summary
-- Use 50/10 focus cycles (Pomodoro)
-- Minimize distractions using task batching
-
-Focus Plan
-1. 0–50 min: Outline report sections
-2. 50–60 min: Short break
-3. 60–110 min: Write core content
-4. 110–120 min: Revise and finalize
-
-Why This Works
-Incorporates evidence-based attention management strategies for sustained focus.
-
-Motivation
-Every focused cycle compounds - momentum builds with each 50-minute block.
+[User Goal + Duration]
+      ↓
+CLASSIFY — identify if the task needs planning, research, or motivation  
+      ↓
+ROUTE — decide which specialized sub-agent to activate  
+      ↓
+ACT — run planner / research / motivator (with RAG for real context)  
+      ↓
+REFLECT — review and refine the plan before final output  
+      ↓
+Return structured focus plan with reasoning + motivation
 ```
+
+> Focus Buddy isn’t just conversational, it *acts with intent.*
 
 ---
 
 ## Quickstart
-### Clone the repo
+
+### 1. Clone the repo
 ```bash
 git clone https://github.com/serasr/agentic-focus-buddy.git
 cd agentic-focus-buddy
 ```
 
-### Create a virtual environment
+### 2. Create a virtual environment
 ```bash
-python -m venv .venv  
-venv\Scripts\activate
+python -m venv .venv
+# Activate it:
+venv\Scripts\activate    # Windows
+source .venv/bin/activate # macOS/Linux
 ```
 
-### Install dependencies
+### 3. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### Add your API keys
-Create a `.env` file:
-```
-OPENAI_API_KEY=<your-openai-key-here>
-SERPAPI_API_KEY=<your-serpapi-key-here>
+### 4. Add your API key
+Create a `.env` file in the project root:
+```bash
+OPENAI_API_KEY=sk-your-key-here
 ```
 
-### Run locally (Gradio UI)
+If you’re using Agentic RAG:
+```bash
+SERPAPI_API_KEY=your-serpapi-key
+```
+
+### 5. Run the app
 ```bash
 python app.py
 ```
-Open [http://127.0.0.1:7860](http://127.0.0.1:7860)  
-Enter a task & duration, and Focus Buddy will retrieve insights, reason, and generate your plan.
+
+Then open:  
+```bash
+http://127.0.0.1:7860
+```
 
 ---
 
-## Version History
+## Example Usage
 
-### v2.0 - Agentic RAG
-- Introduced web retrieval via SerpAPI  
-- Combined external context + reasoning for smarter plans  
-- Updated Gradio UI for unified output
+**Input**
+```
+Goal: Finish a literature review on generative AI ethics
+Duration: 3 hours
+```
 
-### v1.0 - Reason → Act → Reflect
-- Primitive reasoning loop with interpret → plan → refine  
-- No external context  
-- Core logic in `focus_buddy.py`
+**Output**
+```
+Classifier → research
+Routing to: research_agent
+
+Focus Buddy Plan for: Finish a literature review on generative AI ethics
+--------------------------------------------------
+1. Scan recent AI ethics papers (0:00–0:40)
+2. Extract key arguments (0:40–1:20)
+3. Draft comparison summary (1:20–2:20)
+4. Review and synthesize (2:20–3:00)
+
+Reflection:
+The pacing looks good. Add a short 10-min stretch between steps 2 and 3 for cognitive reset.
+
+Motivation:
+"Curiosity fuels clarity - let it guide your review."
+```
 
 ---
 
 ## Project Structure
+
 ```
 focus-buddy-agent/
-├─ focus_buddy.py          # v1.0 Reason → Act → Reflect agent logic  
-├─ focus_buddy_rag.py      # v2.0 Manual Agentic RAG  
-├─ app.py                  # Gradio UI (integrated with RAG backend)  
-├─ requirements.txt  
-├─ .env  
-├─ README.md  
-└─ CHANGELOG.md  
+├─ focus_buddy_langgraph.py   # Core agentic logic (LangGraph + RAG)
+├─ focus_buddy_rag.py         # Retrieval pipeline (SerpAPI-based)
+├─ focus_buddy.py             # Simple agent 
+├─ app.py                     # Gradio web UI
+├─ requirements.txt
+├─ .env
+├─ end-product/
+│   └─ v3/                    # Screenshots or demo outputs
+├─ README.md
+└─ CHANGELOG.md
 ```
 
 ---
 
 ## Tech Stack
-- **Python 3.9+**  
-- **LangChain 1.0+**  
-- **OpenAI GPT-4o-mini**  
-- **SerpAPI** for live retrieval  
-- **Gradio** for UI  
-- **dotenv** for secure key management  
+
+| Component | Purpose |
+|------------|----------|
+| **LangGraph** | Autonomous reasoning & control flow |
+| **LangChain + OpenAI** | LLM orchestration & structured output |
+| **Gradio** | Web interface |
+| **SerpAPI** | Real-world retrieval (for RAG) |
+| **Pydantic** | Structured classification schemas |
+| **dotenv** | Secure API key handling |
+
+---
+
+## Requirements
+
+See `requirements.txt`
 
 ---
 
 ## Why “Agentic”?
-Unlike traditional LLMs that just respond once, Focus Buddy *reasons, retrieves, and reflects* -  
-following the core design pattern behind modern **agentic systems** like ReAct, Reflexion, and AutoGPT.
+
+Most AI apps react to input once and stop.  
+Focus Buddy *thinks, routes, retrieves, acts, and reflects* - following the **Reason → Act → Reflect** pattern that defines *agentic systems*.
+
+It’s a small example of how agents can move from *reactive tools* → *autonomous collaborators*.
 
 ---
 
-## License
-MIT License - see [LICENSE](LICENSE)
+## Author
+**Created by:** Sera  
+Part of the *Agentic AI Learning-in-Public* series — building reasoning-driven systems that bridge productivity, autonomy, and AI design.
 
 ---
 
-## Credits & Author
-**Created by:** Sera 
-
-Part of my *“Agentic AI”* learning journey - building small reasoning-driven systems to explore how AI can move from reactive to proactive behavior.
