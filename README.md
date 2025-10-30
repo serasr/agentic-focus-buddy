@@ -1,4 +1,4 @@
-# Focus Buddy (Agentic v3.0)
+# Focus Buddy (Agentic v3.1)
 
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-blue?logo=openai)](https://platform.openai.com)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-green?logo=python)](https://www.python.org/)
@@ -9,42 +9,42 @@
 
 ## Overview
 
-**Focus Buddy** is an **autonomous AI agent** that plans your deep-work sessions intelligently.  
-Unlike a chatbot, it doesn’t just respond, rather it *thinks, retrieves, and reflects* before presenting a final, personalized focus plan.
+**Focus Buddy** is an **autonomous AI agent** that helps you plan deep-work sessions intelligently.  
+It uses **LangGraph** for reasoning, routing, and reflection, and now, with **persistent memory**, it remembers your past sessions to personalize your focus plans.
 
-This is part of the **Agentic AI: Learning in Public Series**, exploring how reasoning loops, retrieval, and autonomy can make AI systems more *intentional* and *goal-driven*.
+This version (v3.1) introduces a major leap: Focus Buddy doesn’t just *act* autonomously -> it now *learns and adapts* over time.
 
 ---
 
-## Version Highlights (v3.0)
+## Version Highlights (v3.1)
 
 | Capability | Description |
 |-------------|--------------|
-| **Session-based design** | You give it a goal and duration - it handles everything autonomously. |
-| **Agentic autonomy (LangGraph)** | Classifies → Routes → Executes → Reflects using reasoning loops. |
-| **Agentic RAG integration** | Retrieves real-world productivity and research insights using SerpAPI. |
-| **Self-reflection step** | Evaluates and refines its own plan for realism and flow. |
-| **Gradio UI** | Simple web interface to interact with Focus Buddy visually. |
+| **Persistent Memory** | Stores and recalls your past focus sessions for personalized reflection. |
+| **Autonomous LangGraph Flow** | Classifies → Routes → Executes → Reflects - no manual control needed. |
+| **Agentic RAG** | Integrates SerpAPI-based retrieval for contextual productivity insights. |
+| **Gradio Interface** | Intuitive UI with memory log and recent session viewer. |
+| **Self-Reflection Loop** | Evaluates and refines its own plan for pacing and realism. |
 
 ---
 
 ## How It Works
 
 ```
-[User Goal + Duration]
+[Your Goal + Duration]
       ↓
-CLASSIFY — identify if the task needs planning, research, or motivation  
+Classify → Identify goal type (focus / research / motivation)
       ↓
-ROUTE — decide which specialized sub-agent to activate  
+Route → Pick the right sub-agent
       ↓
-ACT — run planner / research / motivator (with RAG for real context)  
+Act → Generate plan or retrieve insights (Agentic RAG)
       ↓
-REFLECT — review and refine the plan before final output  
+Reflect → Refine plan based on recent memory + pacing
       ↓
-Return structured focus plan with reasoning + motivation
+Save → Remember this session for future adaptation
 ```
 
-> Focus Buddy isn’t just conversational, it *acts with intent.*
+> Memory lets Focus Buddy understand *you* over time.
 
 ---
 
@@ -94,29 +94,31 @@ http://127.0.0.1:7860
 
 ## Example Usage
 
-**Input**
+**Input:**
 ```
-Goal: Finish a literature review on generative AI ethics
-Duration: 3 hours
+Goal: Finish a data analysis report
+Duration: 2 hours
 ```
 
-**Output**
+**Output:**
 ```
-Classifier → research
-Routing to: research_agent
-
-Focus Buddy Plan for: Finish a literature review on generative AI ethics
+Focus Buddy Plan
 --------------------------------------------------
-1. Scan recent AI ethics papers (0:00–0:40)
-2. Extract key arguments (0:40–1:20)
-3. Draft comparison summary (1:20–2:20)
-4. Review and synthesize (2:20–3:00)
+1. Outline analysis structure (0:00–0:25)
+2. Draft main findings (0:25–1:15)
+3. Take a 10-min mental reset
+4. Polish and finalize (1:25–2:00)
 
 Reflection:
-The pacing looks good. Add a short 10-min stretch between steps 2 and 3 for cognitive reset.
+Based on your last few sessions, you tend to slow down after 90 minutes.
+Added a short break for cognitive refresh.
+```
 
-Motivation:
-"Curiosity fuels clarity - let it guide your review."
+**Memory Saved!**
+```
+Previous Sessions:
+- Write report summary (2 hours) @ 2025-10-25
+- Learn LangGraph basics (1.5 hours) @ 2025-10-26
 ```
 
 ---
@@ -125,9 +127,10 @@ Motivation:
 
 ```
 focus-buddy-agent/
-├─ focus_buddy_langgraph.py   # Core agentic logic (LangGraph + RAG)
+├─ focus_buddy_langgraph.py   # Core agentic logic (LangGraph + RAG + Memory)
 ├─ focus_buddy_rag.py         # Retrieval pipeline (SerpAPI-based)
-├─ focus_buddy.py             # Simple agent 
+├─ focus_buddy.py             # Simple agent
+├─ memory_manager.py          # Memory handler  
 ├─ app.py                     # Gradio web UI
 ├─ requirements.txt
 ├─ .env
@@ -166,6 +169,14 @@ Focus Buddy *thinks, routes, retrieves, acts, and reflects* - following the **Re
 It’s a small example of how agents can move from *reactive tools* → *autonomous collaborators*.
 
 ---
+
+## Conceptual Insight
+
+> **RAG helps agents answer with knowledge.**  
+> **Memory helps them act with continuity.**
+ 
+RAG enriches responses. Memory builds *identity.*
+
 
 ## Author
 **Created by:** Sera  
