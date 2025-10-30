@@ -1,5 +1,5 @@
 """
-Focus Buddy v3.0 - Autonomous Focus Session Agent
+Focus Buddy v3.1 - Autonomous Focus Session Agent
 --------------------------------------------------
 Uses LangGraph for classification, routing & decision logic
 Integrates Agentic RAG (SerpAPI-based) for research tasks
@@ -12,10 +12,12 @@ from dotenv import load_dotenv
 from typing import Annotated, Literal
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAIs
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 from focus_buddy_rag import run_agentic_rag # from v2.0 focus buddy
+from IPython.display import Image, display
+from memory_manager import remember_session, get_recent_preferences
 
 # --- Setup ---
 load_dotenv()
@@ -112,7 +114,7 @@ def research_agent(state: State):
         rag_output = run_agentic_rag(goal, duration)
         return {"messages": [{"role": "assistant", "content": rag_output}]}
     except Exception as e:
-        return {"messages": [{"role": "assistant", "content": f"⚠️ Retrieval failed: {e}"}]}
+        return {"messages": [{"role": "assistant", "content": f"Retrieval failed: {e}"}]}
 
 
 def motivator_agent(state: State):
@@ -194,11 +196,14 @@ graph = graph_builder.compile()
 def run_focus_session(goal: str, duration: str = "2 hours"):
     """
     Runs a full autonomous focus session:
-    Goal → Classify → Route → Execute → Reflect → Return structured output.
+    Goal → Classify → Route → Execute → Reflect → Save to memory → Return structured output.
     """
-    print("Focus Buddy v3.0 - Agentic Focus Session\n")
+    print("Focus Buddy v3.1 -> Agentic Focus Session with Memory\n")
 
-    # Initialize state
+    recent = get_recent_preferences()
+    if recent:
+        print("Previous Sessions:\n" + recent + "\n")
+
     state = {
         "goal": goal,
         "duration": duration,
@@ -206,21 +211,28 @@ def run_focus_session(goal: str, duration: str = "2 hours"):
         "task_type": None
     }
 
-    # Execute full agentic loop
     final_state = graph.invoke(state)
-
     last_message = final_state["messages"][-1]
     result = last_message.content if hasattr(last_message, "content") else last_message["content"]
 
-    print(f"\n Focus Buddy Plan for: {goal}\n{'-'*50}\n{result}\n")
+    print(f"\nFocus Buddy Plan for: {goal}\n{'-'*50}\n{result}\n")
+
+    remember_session(goal, duration, result)
+    print("Memory Updated! Focus Buddy remembers this session!\n")
 
     return result
 
 
-
+# ----------------------------------------------------
+# VISUALIZE LANGGRAPH STRUCTURE (OPTIONAL) & RUNS
+# ----------------------------------------------------
 if __name__ == "__main__":
+    try:
+        display(Image(graph.get_graph().draw_mermaid_png()))
+    except Exception as e:
+        print("Visualization skipped (missing dependencies):", e)
+
     # Example runs
     run_focus_session("Finish a data analysis report", "2 hours")
     # run_focus_session("Learn how to improve deep work productivity", "1.5 hours")
     # run_focus_session("Get motivated to start my thesis writing", "30 minutes")
-
