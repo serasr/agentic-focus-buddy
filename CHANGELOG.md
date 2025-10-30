@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [v3.1] - 2025-10-30
+### Added
+- Introduced **persistent memory** (`memory_manager.py`) to store recent focus sessions.
+- Reflection agent now accesses memory context to adapt pacing and structure.
+- Updated **Gradio UI** to display recent sessions and memory log in real time.
+- Added visualization of recent sessions before each new run.
+- Extended reflection node prompt to incorporate personalized context.
+
+### Improved
+- Refined system messages for planner, motivator, and reflector for consistency.
+- Enhanced readability of generated plans with clearer section breaks.
+- Improved classification robustness using structured output (Pydantic schema).
+
+---
 ## [v3.0] - 2025-10-23
 ### Added
 - Migrated from rule-based loops to **LangGraph** autonomous flow.
