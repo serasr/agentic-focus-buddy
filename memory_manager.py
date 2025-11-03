@@ -1,40 +1,57 @@
-# memory_manager.py
 import json
-from pathlib import Path
+import os
 from datetime import datetime
 
-MEMORY_FILE = Path("focus_memory.json")
+MEMORY_FILE = "focus_memory.json"
 
 def load_memory():
-    # Load previous sessions from memory file
-    if MEMORY_FILE.exists():
+    if not os.path.exists(MEMORY_FILE):
+        return []
+    with open(MEMORY_FILE, "r", encoding="utf-8") as f:
         try:
-            return json.loads(MEMORY_FILE.read_text(encoding="utf-8"))
+            return json.load(f)
         except json.JSONDecodeError:
             return []
-    return []
 
-def save_memory(memory_data):
-    # Save sessions back to file
-    MEMORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    MEMORY_FILE.write_text(json.dumps(memory_data, indent=2, ensure_ascii=False), encoding="utf-8")
 
-def remember_session(goal: str, duration: str, plan: str):
-    # Add new session entry
-    memory = load_memory()
-    memory.append({
-        "timestamp": datetime.now().isoformat(timespec="minutes"),
+def save_memory(entry):
+    """Appends structured memory entry to persistent file."""
+    data = load_memory()
+    data.append(entry)
+    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+
+def record_session(goal, duration, reflection, actual_focus=None, fatigue_score=None, breaks_taken=0):
+    """Stores structured feedback for each session."""
+    entry = {
         "goal": goal,
         "duration": duration,
-        "plan_summary": plan.strip()[:500]
-    })
-    save_memory(memory)
+        "reflection": reflection,
+        "actual_focus_minutes": actual_focus,
+        "breaks_taken": breaks_taken,
+        "fatigue_score": fatigue_score,
+        "timestamp": datetime.now().isoformat()
+    }
+    save_memory(entry)
 
-def get_recent_preferences(limit: int = 3) -> str | None:
-    #Return a summary of recent sessions
-    memory = load_memory()
-    if not memory:
+
+def get_recent_sessions(n=3):
+    """Returns recent sessions as text for reflection context."""
+    data = load_memory()[-n:]
+    if not data:
+        return "No previous sessions found."
+    summary = []
+    for d in data:
+        fatigue = f" (fatigue {d['fatigue_score']}/5)" if d.get("fatigue_score") else ""
+        summary.append(f"- {d['goal']} ({d['duration']}) → focus {d.get('actual_focus_minutes','?')} min{fatigue}")
+    return "\n".join(summary)
+
+
+def compute_average_focus_time():
+    """Computes avg actual focus minutes from recorded memory."""
+    data = [d for d in load_memory() if d.get("actual_focus_minutes")]
+    if not data:
         return None
-    recent = memory[-limit:]
-    lines = [f"- {m['goal']} ({m['duration']}) @ {m['timestamp']}" for m in recent]
-    return "\n".join(lines)
+    total = sum(d["actual_focus_minutes"] for d in data)
+    return round(total / len(data), 1)
