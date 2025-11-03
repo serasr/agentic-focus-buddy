@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [v3.2] - 2025-11-01
+### Added
+- Self-feedback telemetry in Gradio interface (fatigue slider, breaks, focus time).
+- Structured memory system with numeric fields.
+- Adaptive reflection using computed average focus duration.
+- Planner adapts based on recorded historical focus data.
+
+### Fixed
+- Occasional JSON decode errors on corrupted `focus_memory.json`.
+- Minor prompt alignment inconsistencies.
+
+---
+
 ## [v3.1] - 2025-10-30
 ### Added
 - Introduced **persistent memory** (`memory_manager.py`) to store recent focus sessions.
