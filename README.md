@@ -1,4 +1,4 @@
-# Focus Buddy (Agentic v3.1)
+# Focus Buddy (Agentic v3.2)
 
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-blue?logo=openai)](https://platform.openai.com)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-green?logo=python)](https://www.python.org/)
@@ -12,7 +12,9 @@
 **Focus Buddy** is an **autonomous AI agent** that helps you plan deep-work sessions intelligently.  
 It uses **LangGraph** for reasoning, routing, and reflection, and now, with **persistent memory**, it remembers your past sessions to personalize your focus plans.
 
-This version (v3.1) introduces a major leap: Focus Buddy doesn’t just *act* autonomously -> it now *learns and adapts* over time.
+**Focus Buddy v3.2** adds self-feedback telemetry -> enabling your AI agent to learn from how you actually work, not just what you plan.
+
+It’s no longer guessing your patterns, it’s beginning to observe them.
 
 ---
 
@@ -25,6 +27,26 @@ This version (v3.1) introduces a major leap: Focus Buddy doesn’t just *act* au
 | **Agentic RAG** | Integrates SerpAPI-based retrieval for contextual productivity insights. |
 | **Gradio Interface** | Intuitive UI with memory log and recent session viewer. |
 | **Self-Reflection Loop** | Evaluates and refines its own plan for pacing and realism. |
+
+---
+## What’s New (v3.2)
+
+| Feature | Description |
+|----------|-------------|
+| Structured Memory | Records actual focus duration, fatigue score, and breaks taken. |
+| Feedback Buttons | New Gradio UI lets you log feedback after each session. |
+| Adaptive Reflection | Uses real averages to personalize pacing. |
+| Learning Loop | From semantic guessing → behavioral adaptation. |
+
+---
+
+## Why It Matters
+
+> v3.1 gave Focus Buddy memory.  
+> v3.2 gives it awareness.
+
+This bridges the gap between “adaptive prompts” and “learning behavior.”  
+It’s the first step toward an agent that truly personalizes itself through your feedback.
 
 ---
 
@@ -92,46 +114,16 @@ http://127.0.0.1:7860
 
 ---
 
-## Example Usage
-
-**Input:**
-```
-Goal: Finish a data analysis report
-Duration: 2 hours
-```
-
-**Output:**
-```
-Focus Buddy Plan
---------------------------------------------------
-1. Outline analysis structure (0:00–0:25)
-2. Draft main findings (0:25–1:15)
-3. Take a 10-min mental reset
-4. Polish and finalize (1:25–2:00)
-
-Reflection:
-Based on your last few sessions, you tend to slow down after 90 minutes.
-Added a short break for cognitive refresh.
-```
-
-**Memory Saved!**
-```
-Previous Sessions:
-- Write report summary (2 hours) @ 2025-10-25
-- Learn LangGraph basics (1.5 hours) @ 2025-10-26
-```
-
----
-
 ## Project Structure
 
 ```
 focus-buddy-agent/
-├─ focus_buddy_langgraph.py   # Core agentic logic (LangGraph + RAG + Memory)
+├─ focus_buddy_langgraph.py   # Core agentic logic (LangGraph + RAG + Memory + self-feedback)
 ├─ focus_buddy_rag.py         # Retrieval pipeline (SerpAPI-based)
 ├─ focus_buddy.py             # Simple agent
 ├─ memory_manager.py          # Memory handler  
 ├─ app.py                     # Gradio web UI
+├─ sample_focus_memory.json   # Sample file depicting how memory is stored locally. This file will be created when the app is run.
 ├─ requirements.txt
 ├─ .env
 ├─ end-product/
