@@ -1,4 +1,5 @@
-# Focus Buddy (Agentic v3.2)
+# 🤖 Focus Buddy v4.0  
+### *Context-Aware. Memory-Driven. MCP-Ready.*
 
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-blue?logo=openai)](https://platform.openai.com)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-green?logo=python)](https://www.python.org/)
@@ -12,63 +13,121 @@
 **Focus Buddy** is an **autonomous AI agent** that helps you plan deep-work sessions intelligently.  
 It uses **LangGraph** for reasoning, routing, and reflection, and now, with **persistent memory**, it remembers your past sessions to personalize your focus plans.
 
-**Focus Buddy v3.2** adds self-feedback telemetry -> enabling your AI agent to learn from how you actually work, not just what you plan.
+Focus Buddy v4.0 marks a major leap in my **Agentic AI Learning-in-Public series**.
 
-It’s no longer guessing your patterns, it’s beginning to observe them.
+For the first time, the agent becomes both:
 
----
+- **World-aware** - it reads your calendar and tasks (via MCP-style context tools)  
+- **Self-aware** - it learns from your fatigue, breaks, and focus patterns over time  
 
-## Version Highlights (v3.1)
+This creates a deeply adaptive planning agent that doesn’t just respond, it *understands*, *learns*, and *adjusts*.
 
-| Capability | Description |
-|-------------|--------------|
-| **Persistent Memory** | Stores and recalls your past focus sessions for personalized reflection. |
-| **Autonomous LangGraph Flow** | Classifies → Routes → Executes → Reflects - no manual control needed. |
-| **Agentic RAG** | Integrates SerpAPI-based retrieval for contextual productivity insights. |
-| **Gradio Interface** | Intuitive UI with memory log and recent session viewer. |
-| **Self-Reflection Loop** | Evaluates and refines its own plan for pacing and realism. |
-
----
-## What’s New (v3.2)
-
-| Feature | Description |
-|----------|-------------|
-| Structured Memory | Records actual focus duration, fatigue score, and breaks taken. |
-| Feedback Buttons | New Gradio UI lets you log feedback after each session. |
-| Adaptive Reflection | Uses real averages to personalize pacing. |
-| Learning Loop | From semantic guessing → behavioral adaptation. |
 
 ---
 
-## Why It Matters
+# Why v4.0 Is Different
 
-> v3.1 gave Focus Buddy memory.  
-> v3.2 gives it awareness.
+Most AI assistants answer questions.
 
-This bridges the gap between “adaptive prompts” and “learning behavior.”  
-It’s the first step toward an agent that truly personalizes itself through your feedback.
+But an **agent** should:
+
+- Observe the world  
+- Reason over context  
+- Reflect on past behavior  
+- Adapt its strategy  
+- Take actions (like scheduling your focus block)
+
+Focus Buddy v4.0 now does all of this.
 
 ---
 
-## How It Works
+# New in v4.0
+
+## 1. MCP-Style Context Integration
+
+Your agent now consults two external sources before planning:
+
+### Calendar MCP Mock  
+Finds your *free focus slots* automatically.
+
+### Task MCP Mock  
+Looks at your top pending tasks and includes them in the reasoning.
+
+Both mocks are designed with the same interfaces real MCP servers use.  
+Swapping them with Google Calendar / Notion / Todoist MCP will require **zero changes to your agent logic**.
+
+---
+
+## 2. World + Self Awareness Combined
+
+Focus Buddy uses:
+
+- **Your goal**
+- **Your available duration**
+- **Calendar free slots**
+- **Pending tasks**
+- **Your average focus time**
+- **Fatigue trends**
+- **Break frequency**
+
+…and merges everything into a *personalized* plan.
+
+---
+
+## 3. Autonomous Scheduling
+
+With a single toggle (`auto_schedule=True`):
+
+- The agent picks your next free slot  
+- Adds a calendar event via MCP  
+- Returns the scheduled confirmation  
+
+This turns planning into *doing*.
+
+---
+
+## 4. Full Memory System Integration
+
+Stored per-session:
+
+- Focus time  
+- Fatigue score  
+- Breaks taken  
+- Reflections  
+- Timestamp  
+
+This historical memory directly influences:
+
+- Block length  
+- Break timing  
+- Realism adjustments  
+- Reflection insights  
+
+---
+
+# High-Level Architecture
 
 ```
-[Your Goal + Duration]
-      ↓
-Classify → Identify goal type (focus / research / motivation)
-      ↓
-Route → Pick the right sub-agent
-      ↓
-Act → Generate plan or retrieve insights (Agentic RAG)
-      ↓
-Reflect → Refine plan based on recent memory + pacing
-      ↓
-Save → Remember this session for future adaptation
+[User Goal + Duration]
+        ↓
+[MCP Context Agent]
+        ↓
+[Classifier → focus / research / motivation]
+        ↓
+[Router]
+   ├── Planner Agent (uses memory + context)
+   ├── Research Agent
+   └── Motivation Agent
+        ↓
+[Reflection Agent]
+        ↓
+[Memory Save]
+        ↓
+[User Feedback → Memory Update]
 ```
 
-> Memory lets Focus Buddy understand *you* over time.
-
 ---
+
 
 ## Quickstart
 
@@ -118,16 +177,19 @@ http://127.0.0.1:7860
 
 ```
 focus-buddy-agent/
-├─ focus_buddy_langgraph.py   # Core agentic logic (LangGraph + RAG + Memory + self-feedback)
+├─ focus_buddy_langgraph.py   # LangGraph agent (context, memory, reflection)
 ├─ focus_buddy_rag.py         # Retrieval pipeline (SerpAPI-based)
 ├─ focus_buddy.py             # Simple agent
-├─ memory_manager.py          # Memory handler  
+├─ memory_manager.py          # Memory handler
+├── mcp_client.py             # MCP-style mock servers (calendar + tasks)
 ├─ app.py                     # Gradio web UI
 ├─ sample_focus_memory.json   # Sample file depicting how memory is stored locally. This file will be created when the app is run.
+├── calendar_data.json        # Calendar mock data
+├── tasks_data.json           # Tasks mock data
 ├─ requirements.txt
 ├─ .env
 ├─ end-product/
-│   └─ v3/                    # Screenshots or demo outputs
+│   └─ v4/                    # Screenshots or demo outputs
 ├─ README.md
 └─ CHANGELOG.md
 ```
@@ -136,14 +198,12 @@ focus-buddy-agent/
 
 ## Tech Stack
 
-| Component | Purpose |
-|------------|----------|
-| **LangGraph** | Autonomous reasoning & control flow |
-| **LangChain + OpenAI** | LLM orchestration & structured output |
-| **Gradio** | Web interface |
-| **SerpAPI** | Real-world retrieval (for RAG) |
-| **Pydantic** | Structured classification schemas |
-| **dotenv** | Secure API key handling |
+- **LangGraph** – workflow and routing
+- **OpenAI GPT‑4o-mini** – reasoning & planning
+- **Gradio** – UI
+- **dotenv** – environment loading
+- **Local MCP mocks** – calendar + tasks
+- **JSON-based memory system** – behavior tracking
 
 ---
 
@@ -161,13 +221,6 @@ Focus Buddy *thinks, routes, retrieves, acts, and reflects* - following the **Re
 It’s a small example of how agents can move from *reactive tools* → *autonomous collaborators*.
 
 ---
-
-## Conceptual Insight
-
-> **RAG helps agents answer with knowledge.**  
-> **Memory helps them act with continuity.**
- 
-RAG enriches responses. Memory builds *identity.*
 
 
 ## Author
