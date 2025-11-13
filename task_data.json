@@ -1,0 +1,7 @@
+{
+  "tasks": [
+    { "id": "T-101", "title": "Outline report sections", "due": "2025-11-14", "done": false },
+    { "id": "T-102", "title": "Clean dataset",           "due": "2025-11-15", "done": false },
+    { "id": "T-103", "title": "Email stakeholders",      "due": "2025-11-16", "done": true  }
+  ]
+}
