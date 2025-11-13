@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [v4.0] - 2025-11-13
+### Added
+- Added `mcp_client.py`  
+- Introduced CalendarServerMock  
+- Introduced TaskServerMock  
+- Synchronous `mcp.call(server, tool, args)` interface  
+- Enables future replacement with real MCP servers (Google Calendar, Notion)
+
+---
+
 ## [v3.2] - 2025-11-01
 ### Added
 - Self-feedback telemetry in Gradio interface (fatigue slider, breaks, focus time).
