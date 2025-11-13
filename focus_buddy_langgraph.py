@@ -1,18 +1,28 @@
 """
-Focus Buddy v3.2 - Understanding your focus patterns
-----------------------------------------------------
+Focus Buddy v4.0 : MCP-ready, Context-Aware Focus Agent
+- Uses MCP-style client to fetch:
+  - calendar free slots
+  - top tasks
+- Uses structured memory (from v3.1) for personalization
+- Optional auto-scheduling of a focus block into the calendar mock
 """
 
-# --- Imports ---
 import os
+from typing import Annotated, Literal, Dict, Any
+
 from dotenv import load_dotenv
-from typing import Annotated, Literal
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
-from memory_manager import record_session, get_recent_sessions, compute_average_focus_time
+
+from memory_manager import (
+    record_session,
+    compute_average_focus_time,
+    get_recent_sessions,
+)
+from mcp_client import MCPClient
 
 # --- Setup ---
 load_dotenv()
@@ -20,115 +30,291 @@ openai_api_key = os.getenv("OPEN_API_KEY")
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.6, api_key=openai_api_key)
 
-# --- State schema ---
+mcp = MCPClient()
+
+
+# ---------------------- Helpers --------------------
+def parse_duration_to_minutes(text: str) -> int:
+    """
+    Very small parser: '2 hours' -> 120, '90 min' -> 90, '1.5h' -> 90.
+    Defaults to 60 if unclear.
+    """
+    t = (text or "").lower().strip()
+    try:
+        if any(k in t for k in ["hour", "hr", "h "]):
+            # extract first number-ish token
+            num_str = "".join(ch if (ch.isdigit() or ch in ". ") else " " for ch in t)
+            toks = [p for p in num_str.split() if p]
+            if toks:
+                return int(round(float(toks[0]) * 60))
+        if "min" in t or "m " in t or t.endswith("m"):
+            num_str = "".join(ch if (ch.isdigit() or ch in ". ") else " " for ch in t)
+            toks = [p for p in num_str.split() if p]
+            if toks:
+                return int(round(float(toks[0])))
+    except Exception:
+        pass
+    return 60
+
+
+def summarize_context(context: Dict[str, Any]) -> str:
+    slots = context.get("free_slots", []) or []
+    tasks = context.get("top_tasks", []) or []
+
+    if slots:
+        slot_lines = [f"- {s['start']} → {s['end']}" for s in slots]
+    else:
+        slot_lines = ["(no free slots found)"]
+
+    if tasks:
+        task_lines = [
+            f"- [{t.get('id','?')}] {t.get('title','(untitled)')} "
+            f"(due {t.get('due','—')}){' ✅' if t.get('done') else ''}"
+            for t in tasks
+        ]
+    else:
+        task_lines = ["(no tasks found)"]
+
+    return "Free slots:\n" + "\n".join(slot_lines) + "\n\nTop tasks:\n" + "\n".join(task_lines)
+
+
+# ---------------------- State & Classifier ----------------------
 class TaskClassifier(BaseModel):
     task_type: Literal["focus", "research", "motivation"] = Field(...)
+
 
 class State(TypedDict):
     goal: str
     duration: str
     messages: Annotated[list, add_messages]
     task_type: str | None
+    context: Dict[str, Any]
+    auto_schedule: bool
 
 
-# --- Classifier Node ---
+# ---------------------- Nodes ----------------------
+def context_agent(state: State):
+    """Fetch external context (calendar slots + top tasks) via MCP client."""
+    duration_min = parse_duration_to_minutes(state["duration"])
+    free_slots = mcp.call("calendar", "get_free_slots", {"duration_minutes": duration_min})
+    top_tasks = mcp.call("tasks", "list_top_tasks", {"limit": 3})
+    return {
+        "context": {
+            "duration_min": duration_min,
+            "free_slots": free_slots,
+            "top_tasks": top_tasks,
+        }
+    }
+
+
 def classify_task(state: State):
-    goal = state["goal"]
-    classifier = llm.with_structured_output(TaskClassifier)
-    result = classifier.invoke([
-        {"role": "system", "content": "Classify the goal as focus, research, or motivation."},
-        {"role": "user", "content": goal}
-    ])
-    return {"task_type": result.task_type}
+    cls = llm.with_structured_output(TaskClassifier)
+    res = cls.invoke(
+        [
+            {
+                "role": "system",
+                "content": "Classify the goal as 'focus', 'research', or 'motivation'.",
+            },
+            {"role": "user", "content": state["goal"]},
+        ]
+    )
+    return {"task_type": res.task_type}
 
 
-# --- Router Node ---
 def router(state: State):
     t = state.get("task_type", "focus")
-    return {"next": f"{t}_agent"}
+    if t == "research":
+        return {"next": "research_agent"}
+    if t == "motivation":
+        return {"next": "motivator_agent"}
+    return {"next": "planner_agent"}
 
 
-# --- Agents ---
 def planner_agent(state: State):
-    goal, duration = state["goal"], state["duration"]
+    goal = state["goal"]
+    duration = state["duration"]
+    context = state.get("context", {})
     avg_focus = compute_average_focus_time()
-    avg_msg = f"Your average focus time is around {avg_focus} minutes." if avg_focus else "No focus history yet."
-    msgs = [
-        {"role": "system", "content": "You are Focus Buddy. Create structured focus plans with time blocks."},
-        {"role": "assistant", "content": avg_msg},
-        {"role": "user", "content": f"Goal: {goal}\nDuration: {duration}"}
+    avg_msg = (
+        f"User’s average focus window: ~{avg_focus} minutes."
+        if avg_focus is not None
+        else "No historical focus data yet."
+    )
+    ctx_summary = summarize_context(context)
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are Focus Buddy. Create a realistic, time-bounded plan "
+                "using both user history and context (calendar slots + tasks)."
+            ),
+        },
+        {
+            "role": "assistant",
+            "content": f"{avg_msg}\n\nContext:\n{ctx_summary}",
+        },
+        {
+            "role": "user",
+            "content": (
+                f"Goal: {goal}\n"
+                f"Duration: {duration}\n"
+                "Use one of the free slots if possible. Break the work into steps with times."
+            ),
+        },
     ]
-    reply = llm.invoke(msgs)
-    return {"messages": [{"role": "assistant", "content": reply.content}]}
+
+    reply = llm.invoke(messages)
+    plan_text = reply.content if hasattr(reply, "content") else str(reply)
+
+    scheduled_info = None
+    if state.get("auto_schedule") and context.get("free_slots"):
+        first = context["free_slots"][0]
+        scheduled_info = mcp.call(
+            "calendar",
+            "add_event",
+            {
+                "title": f"Focus: {goal}",
+                "start_iso": first["start"],
+                "end_iso": first["end"],
+            },
+        )
+        if scheduled_info.get("ok"):
+            added = scheduled_info["added"]
+            plan_text += (
+                f"\n\n📅 Scheduled focus block: {added['start']} → {added['end']}"
+            )
+
+    # record a basic session entry (user feedback can add richer data later)
+    record_session(
+        goal=goal,
+        duration=duration,
+        reflection="Initial plan (pre-reflection)",
+        actual_focus=None,
+        fatigue_score=None,
+        breaks_taken=0,
+    )
+
+    return {"messages": [{"role": "assistant", "content": plan_text}]}
 
 
 def research_agent(state: State):
     goal = state["goal"]
-    reply = llm.invoke([
-        {"role": "system", "content": "Provide quick contextual research strategies for the task."},
-        {"role": "user", "content": goal}
-    ])
+    ctx_summary = summarize_context(state.get("context", {}))
+    reply = llm.invoke(
+        [
+            {
+                "role": "system",
+                "content": (
+                    "You are a research-focused assistant. Use the given context only "
+                    "as background; propose concise research strategies."
+                ),
+            },
+            {"role": "assistant", "content": f"Context:\n{ctx_summary}"},
+            {"role": "user", "content": goal},
+        ]
+    )
     return {"messages": [{"role": "assistant", "content": reply.content}]}
 
 
 def motivator_agent(state: State):
     goal = state["goal"]
-    reply = llm.invoke([
-        {"role": "system", "content": "Motivate the user with encouragement and perspective."},
-        {"role": "user", "content": goal}
-    ])
+    reply = llm.invoke(
+        [
+            {
+                "role": "system",
+                "content": (
+                    "You are a motivational coach. Encourage the user and give a short, "
+                    "grounding affirmation tied to their goal."
+                ),
+            },
+            {"role": "user", "content": goal},
+        ]
+    )
     return {"messages": [{"role": "assistant", "content": reply.content}]}
 
 
-# --- Reflection Agent ---
 def reflection_agent(state: State):
-    last_message = state["messages"][-1]
+    last = state["messages"][-1]
+    text = last.content if hasattr(last, "content") else str(last)
     recent = get_recent_sessions()
-    avg_focus = compute_average_focus_time()
-    msg = [
-        {"role": "system", "content": "You are a reflective planner. Adjust pacing and structure using user history."},
-        {"role": "assistant", "content": last_message.content},
-        {"role": "user", "content": f"Past sessions:\n{recent}\nAverage focus time: {avg_focus or 'N/A'} minutes"}
+    ctx_summary = summarize_context(state.get("context", {}))
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are the Reflector. Improve the plan using:\n"
+                "- pacing and realism\n"
+                "- user’s past focus patterns\n"
+                "- current context (calendar + tasks)\n"
+                "Keep edits small but meaningful."
+            ),
+        },
+        {"role": "assistant", "content": text},
+        {
+            "role": "user",
+            "content": f"Recent sessions:\n{recent}\n\nContext recap:\n{ctx_summary}",
+        },
     ]
-    reflection = llm.invoke(msg)
-    record_session(state["goal"], state["duration"], reflection.content)
-    return {"messages": [{"role": "assistant", "content": reflection.content}]}
+    reflection = llm.invoke(messages)
+    reflection_text = reflection.content if hasattr(reflection, "content") else str(reflection)
+
+    # store reflection as another memory entry
+    record_session(
+        goal=state["goal"],
+        duration=state["duration"],
+        reflection=reflection_text,
+        actual_focus=None,
+        fatigue_score=None,
+        breaks_taken=0,
+    )
+
+    return {"messages": [{"role": "assistant", "content": reflection_text}]}
 
 
-# --- Build Graph ---
-graph = StateGraph(State)
+# ------------------ Build Graph ----------------------
+graph_builder = StateGraph(State)
+graph_builder.add_node("context_agent", context_agent)
+graph_builder.add_node("classifier", classify_task)
+graph_builder.add_node("router", router)
+graph_builder.add_node("planner_agent", planner_agent)
+graph_builder.add_node("research_agent", research_agent)
+graph_builder.add_node("motivator_agent", motivator_agent)
+graph_builder.add_node("reflection_agent", reflection_agent)
 
-# --- Add nodes ---
-graph.add_node("classifier", classify_task)
-graph.add_node("router", router)
-graph.add_node("planner_agent", planner_agent)
-graph.add_node("research_agent", research_agent)
-graph.add_node("motivator_agent", motivator_agent)
-graph.add_node("reflection_agent", reflection_agent)
+graph_builder.add_edge(START, "context_agent")
+graph_builder.add_edge("context_agent", "classifier")
+graph_builder.add_edge("classifier", "router")
 
-# --- Add edges ---
-graph.add_edge(START, "classifier")
-graph.add_edge("classifier", "router")
-graph.add_conditional_edges(
+graph_builder.add_conditional_edges(
     "router",
-    lambda s: s.get("next"),
+    lambda st: st.get("next"),
     {
-        "focus_agent": "planner_agent",
+        "planner_agent": "planner_agent",
         "research_agent": "research_agent",
-        "motivation_agent": "motivator_agent"
+        "motivator_agent": "motivator_agent",
     },
 )
-graph.add_edge("planner_agent", "reflection_agent")
-graph.add_edge("research_agent", "reflection_agent")
-graph.add_edge("motivator_agent", "reflection_agent")
-graph.add_edge("reflection_agent", END)
 
-graph = graph.compile()
+graph_builder.add_edge("planner_agent", "reflection_agent")
+graph_builder.add_edge("research_agent", "reflection_agent")
+graph_builder.add_edge("motivator_agent", "reflection_agent")
+graph_builder.add_edge("reflection_agent", END)
+
+graph = graph_builder.compile()
 
 
-# --- Run focus sessions ---
-def run_focus_session(goal, duration):
-    state = {"goal": goal, "duration": duration, "messages": [], "task_type": None}
+# --------------- Public Runner ----------------------
+def run_focus_session_v4(goal: str, duration: str = "2 hours", auto_schedule: bool = False) -> str:
+    state: State = {
+        "goal": goal,
+        "duration": duration,
+        "messages": [],
+        "task_type": None,
+        "context": {},
+        "auto_schedule": auto_schedule,
+    }
     final_state = graph.invoke(state)
-    msg = final_state["messages"][-1].content
-    return msg
+    last = final_state["messages"][-1]
+    return last.content if hasattr(last, "content") else str(last)
